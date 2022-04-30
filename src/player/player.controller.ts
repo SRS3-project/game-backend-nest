@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UsePipes, ValidationPipe } from '@nestjs/common';
 import { PlayerService } from './player.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 @ApiTags('player')
 @Controller('player')
@@ -10,6 +11,7 @@ export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
   @Post()
+  @UsePipes(new ValidationPipe({transform: true}))
   create(@Body() createPlayerDto: CreatePlayerDto) {
     return this.playerService.create(createPlayerDto);
   }
@@ -19,18 +21,19 @@ export class PlayerController {
     return this.playerService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.playerService.findOne(+id);
+  @Get(':username')
+  findOne(@Param('username') username: string) {
+    return this.playerService.findOne(username);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePlayerDto: UpdatePlayerDto) {
-    return this.playerService.update(+id, updatePlayerDto);
+  @Patch(':username')
+  @UsePipes(new ValidationPipe({transform: true}))
+  update(@Param('username') username: string, @Body() updatePlayerDto: UpdatePlayerDto) {
+    return this.playerService.update(username, updatePlayerDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.playerService.remove(+id);
+  @Delete(':username')
+  remove(@Param('username') username: string) {
+    return this.playerService.remove(username);
   }
 }
