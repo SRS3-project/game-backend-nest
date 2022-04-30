@@ -1,26 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { CollectionReference } from '@google-cloud/firestore';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
+import { Player } from './entities/player.entity';
 
 @Injectable()
 export class PlayerService {
-  create(createPlayerDto: CreatePlayerDto) {
-    return 'This action adds a new player';
+  constructor(
+    @Inject(Player.collectionName)
+    private playerCollection: CollectionReference<Player>,
+    private configService: ConfigService
+  ){}
+
+  async create(createPlayerDto: CreatePlayerDto) {
+    const player = await this.playerCollection.doc(createPlayerDto.username).get();
+    if(!player.exists) {
+      createPlayerDto.x = Math.floor(Math.random() * this.configService.get('MAP_WIDTH'));
+      createPlayerDto.y = Math.floor(Math.random() * this.configService.get('MAP_HEIGHT'));
+      createPlayerDto.createdAt = new Date().getTime()
+      createPlayerDto.updatedAt = new Date().getTime()
+
+      await this.playerCollection.doc(createPlayerDto.username).set(JSON.parse(JSON.stringify(createPlayerDto)));
+      return createPlayerDto;
+    }
   }
 
-  findAll() {
-    return `This action returns all player`;
+  async findAll() {
+    return await this.playerCollection.listDocuments()
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} player`;
+  async findOne(username: string) {
+    return await this.playerCollection.doc(username).get();
   }
 
-  update(id: number, updatePlayerDto: UpdatePlayerDto) {
-    return `This action updates a #${id} player`;
+  async update(username: string, updatePlayerDto: UpdatePlayerDto) {
+    return await this.playerCollection.doc(username).update(JSON.parse(JSON.stringify(updatePlayerDto)));
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} player`;
+  async remove(username: string) {
+    return await this.playerCollection.doc(username).delete();
   }
 }
