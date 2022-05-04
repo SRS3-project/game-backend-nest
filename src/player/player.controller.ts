@@ -3,7 +3,6 @@ import { PlayerService } from './player.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
 
 @ApiTags('player')
 @Controller('player')
