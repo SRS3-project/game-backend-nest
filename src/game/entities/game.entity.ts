@@ -1,5 +1,3 @@
 export class Game {
-    static collectionName = 'game';
-
-    player: string;
+  static collectionName = "game";
 }
