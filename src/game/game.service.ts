@@ -1,13 +1,13 @@
-import { CollectionReference, Timestamp } from "@google-cloud/firestore";
+import { CollectionReference } from "@google-cloud/firestore";
 import { HttpStatus, Inject, Injectable } from "@nestjs/common";
-import { Response } from "express";
 import { UpdatePlayerDto } from "src/player/dto/update-player.dto";
 import { Player } from "src/player/entities/player.entity";
 import { PlayerService } from "src/player/player.service";
+import { CreateArmyDto } from "./dto/create-army.dto";
 import { CreateAttackDto } from "./dto/create-attack.dto";
-import { CreateGameDto } from "./dto/create-game.dto";
-import { UpdateGameDto } from "./dto/update-game.dto";
+import { TroopType } from "./enum/troop-type.enum";
 
+const troops = require("./resources/troops.json");
 @Injectable()
 export class GameService {
   constructor(
@@ -16,27 +16,7 @@ export class GameService {
     private readonly playerService: PlayerService,
   ) {}
 
-  create(createGameDto: CreateGameDto) {
-    return "This action adds a new game";
-  }
-
-  findAll() {
-    return `This action returns all game`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} game`;
-  }
-
-  update(id: number, updateGameDto: UpdateGameDto) {
-    return `This action updates a #${id} game`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} game`;
-  }
-
-  async createAttack(res: Response, createAttackDto: CreateAttackDto) {
+  async createAttack(res, createAttackDto: CreateAttackDto) {
     // Check if fromPlayer exists in our firebase
     const fromPlayer = await this.playerCollection.doc(createAttackDto.fromUsername).get();
     if (!fromPlayer.exists) {
@@ -52,21 +32,63 @@ export class GameService {
     const enemy = enemyPlayer.data();
 
     // Game Logic applied
-    if (
-      createAttackDto.army.warriors < player.warriors ||
-      createAttackDto.army.generals < player.generals ||
-      createAttackDto.army.archers < player.archers
-    )
-      return res.status(HttpStatus.BAD_REQUEST);
-
-    player.warriors = player.warriors - createAttackDto.army.warriors;
-    player.generals = player.generals - createAttackDto.army.generals;
-    player.archers = player.archers - createAttackDto.army.archers;
+    createAttackDto.army.forEach((troop) => {
+      switch (troop.type) {
+        case TroopType.WARRIORS: {
+          if (troop.amount < player.warriors)
+            return res
+              .status(HttpStatus.BAD_REQUEST)
+              .send({ error: "The number of warriors exceed you capabilities." });
+          player.warriors = player.warriors - troop.amount;
+          break;
+        }
+        case TroopType.GENERALS: {
+          if (troop.amount < player.generals)
+            return res
+              .status(HttpStatus.BAD_REQUEST)
+              .send({ error: "The number of generals exceed you capabilities." });
+          player.warriors = player.warriors - troop.amount;
+          break;
+        }
+        case TroopType.ARCHERS: {
+          if (troop.amount < player.archers)
+            return res
+              .status(HttpStatus.BAD_REQUEST)
+              .send({ error: "The number of archers exceed you capabilities." });
+          player.warriors = player.warriors - troop.amount;
+          break;
+        }
+      }
+    });
 
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
 
     this.playerService.update(updatePlayer.username, updatePlayer);
 
     // TODO: reply attack on enemy side
+  }
+
+  async buildTroop(req, res, createArmyDto: CreateArmyDto) {
+    const playerRef = await this.playerCollection.doc(req.username).get();
+    if (!playerRef.exists) {
+      return res.status(HttpStatus.NOT_FOUND).send({ error: "Player not found" });
+    }
+
+    const player = playerRef.data();
+    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
+
+    Object.entries(troops[createArmyDto.type].cost).forEach(([resName, resValue]) => {
+      if (player[resName] < troops[createArmyDto.type].cost[resName] * createArmyDto.amount) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          error: "Not enough " + resName + " to build " + createArmyDto.amount + " " + createArmyDto.type,
+        });
+      }
+      player[resName] = player[resName] - troops[createArmyDto.type].cost[resName] * createArmyDto.amount;
+    });
+    player[createArmyDto.type] = player[createArmyDto.type] + createArmyDto.type;
+
+    this.playerService.update(updatePlayer.username, updatePlayer);
+
+    // TODO: socket emit
   }
 }
