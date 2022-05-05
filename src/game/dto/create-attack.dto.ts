@@ -1,5 +1,5 @@
 import { IsNotEmpty, MinLength, ValidateNested } from "class-validator";
-import { ArmyDto } from "./army.dto";
+import { CreateArmyDto } from "./create-army.dto";
 
 export class CreateAttackDto {
   @IsNotEmpty()
@@ -8,7 +8,8 @@ export class CreateAttackDto {
   @IsNotEmpty()
   enemyUsername: string;
 
+  @MinLength(1)
   @IsNotEmpty()
   @ValidateNested()
-  army: ArmyDto;
+  army: CreateArmyDto[];
 }
