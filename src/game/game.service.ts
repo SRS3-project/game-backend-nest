@@ -6,14 +6,18 @@ import { PlayerService } from "src/player/player.service";
 import { CreateArmyDto } from "./dto/create-army.dto";
 import { CreateAttackDto } from "./dto/create-attack.dto";
 import { TroopType } from "./enum/troop-type.enum";
+import { troops } from "./resources/troops";
+import { ConfigService } from "@nestjs/config";
+import { SocketClientProxyService } from "src/socket/socket-client.proxy.service";
 
-const troops = require("./resources/troops.json");
 @Injectable()
 export class GameService {
   constructor(
     @Inject(Player.collectionName)
     private playerCollection: CollectionReference<Player>,
+    private readonly socketClientProxyService: SocketClientProxyService,
     private readonly playerService: PlayerService,
+    private readonly configService: ConfigService,
   ) {}
 
   async createAttack(res, createAttackDto: CreateAttackDto) {
@@ -89,6 +93,19 @@ export class GameService {
 
     this.playerService.update(updatePlayer.username, updatePlayer);
 
-    // TODO: socket emit
+    // socket emit
+    const payload = {
+      brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
+      type: "build",
+      username: req.username,
+      build: createArmyDto,
+    };
+    this.socketClientProxyService.emit("data", JSON.stringify(payload));
+
+    return res.send({
+      timestmap: new Date().getTime(),
+      username: req.username,
+      build: createArmyDto,
+    });
   }
 }
