@@ -26,3 +26,6 @@ chrome-user-data
 .vscode
 *.swp
 *.swo
+
+# firestore
+firestore*
