@@ -69,7 +69,31 @@ export class GameService {
 
     this.playerService.update(updatePlayer.username, updatePlayer);
 
-    // TODO: reply attack on enemy side
+    const attack = {
+      to: createAttackDto.enemyUsername,
+      army: createAttackDto.army,
+      timestampComplete:
+        new Date().getTime() +
+        Math.floor(Math.pow(Math.abs(player.x + enemy.x) - Math.abs(player.y + enemy.y), 2)),
+    };
+
+    // TODO: Update enemy player
+    let updateEnemy: UpdatePlayerDto = new UpdatePlayerDto(enemy);
+
+    // socket emit
+    const payload = {
+      brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
+      type: "attack",
+      username: createAttackDto.fromUsername,
+      attack: attack,
+    };
+    this.socketClientProxyService.emit("data", JSON.stringify(payload));
+
+    return res.send({
+      timestmap: new Date().getTime(),
+      username: createAttackDto.fromUsername,
+      attack: attack,
+    });
   }
 
   async buildTroop(req, res, createArmyDto: CreateArmyDto) {
