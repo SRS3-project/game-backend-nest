@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsArray, IsNotEmpty, IsOptional, MinLength } from "class-validator";
+import { Attack } from "../entities/attack.entity";
 
 export class CreatePlayerDto {
   @IsNotEmpty()
@@ -25,6 +26,9 @@ export class CreatePlayerDto {
   x: number;
   @IsOptional()
   y: number;
+  @IsArray()
+  @MinLength(0)
+  attack: Array<Attack> = new Array<Attack>();
   @IsOptional()
   createdAt: number;
   @IsOptional()
