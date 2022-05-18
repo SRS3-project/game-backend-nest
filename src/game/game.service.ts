@@ -79,6 +79,9 @@ export class GameService {
 
     // TODO: Update enemy player
     let updateEnemy: UpdatePlayerDto = new UpdatePlayerDto(enemy);
+    enemy.attack.push(attack);
+
+    this.playerService.update(updateEnemy.username, updateEnemy);
 
     // socket emit
     const payload = {

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Request, Response } from "@nestjs/common";
+import { Controller, Post, Body, Request, Response } from "@nestjs/common";
 import { GameService } from "./game.service";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateAttackDto } from "./dto/create-attack.dto";
