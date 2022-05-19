@@ -7,7 +7,7 @@ import { writeFileSync } from "fs";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, { cors: false });
 
   const OPENAPI_FILE = "game-backend-openapi.json";
   const configService = app.get(ConfigService);
