@@ -29,7 +29,8 @@ export class PlayerService {
   }
 
   async findAll() {
-    return await this.playerCollection.listDocuments();
+    const snapshot = await this.playerCollection.get();
+    return snapshot.docs.map((doc) => doc.data());
   }
 
   async findOne(username: string) {
