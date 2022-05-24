@@ -34,7 +34,7 @@ export class PlayerService {
   }
 
   async findOne(username: string) {
-    return await this.playerCollection.doc(username).get();
+    return (await this.playerCollection.doc(username).get()).data();
   }
 
   async update(username: string, updatePlayerDto: UpdatePlayerDto) {

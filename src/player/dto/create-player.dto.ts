@@ -27,7 +27,7 @@ export class CreatePlayerDto {
   @IsOptional()
   y: number;
   @IsArray()
-  @MinLength(0)
+  @IsOptional()
   attack: Array<Attack> = new Array<Attack>();
   @IsOptional()
   createdAt: number;
