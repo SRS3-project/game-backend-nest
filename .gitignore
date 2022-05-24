@@ -1,5 +1,6 @@
 node_modules
-*.env
+.env
+.development.env
 .DS_STORE
 node_modules
 dist
