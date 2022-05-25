@@ -1,4 +1,8 @@
-import { IsArray, IsNotEmpty, IsOptional, MinLength } from "class-validator";
+import { ArrayMinSize, IsArray, IsNotEmpty, IsOptional } from "class-validator";
+import { CreateArmyDto } from "src/game/dto/create-army.dto";
+import { CreateResourceDto } from "src/game/dto/create-resource.dto";
+import { ResourceType } from "src/game/enum/resource-type.enum";
+import { TroopType } from "src/game/enum/troop-type.enum";
 import { Attack } from "../entities/attack.entity";
 
 export class CreatePlayerDto {
@@ -8,20 +12,27 @@ export class CreatePlayerDto {
   xp: number = 100;
   @IsNotEmpty()
   level: number = 1;
-  @IsNotEmpty()
-  wood: number = 0;
-  @IsNotEmpty()
-  stone: number = 0;
-  @IsNotEmpty()
-  food: number = 0;
-  @IsNotEmpty()
-  gold: number = 0;
-  @IsNotEmpty()
-  warriors: number = 0;
-  @IsNotEmpty()
-  generals: number = 0;
-  @IsNotEmpty()
-  archers: number = 0;
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(4)
+  resources: Array<CreateResourceDto> = new Array<CreateResourceDto>(
+    ...[
+      { type: ResourceType.FOOD, amount: 0 },
+      { type: ResourceType.GOLD, amount: 0 },
+      { type: ResourceType.STONE, amount: 0 },
+      { type: ResourceType.WOOD, amount: 0 },
+    ],
+  );
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(3)
+  troops: Array<CreateArmyDto> = new Array<CreateArmyDto>(
+    ...[
+      { type: TroopType.ARCHERS, amount: 0 },
+      { type: TroopType.GENERALS, amount: 0 },
+      { type: TroopType.WARRIORS, amount: 0 },
+    ],
+  );
   @IsOptional()
   x: number;
   @IsOptional()

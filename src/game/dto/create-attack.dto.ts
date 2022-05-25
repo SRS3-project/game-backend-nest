@@ -11,5 +11,5 @@ export class CreateAttackDto {
   @MinLength(1)
   @IsNotEmpty()
   @ValidateNested()
-  army: CreateArmyDto[];
+  army: Array<CreateArmyDto>;
 }
