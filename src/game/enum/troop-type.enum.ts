@@ -1,5 +1,5 @@
 export enum TroopType {
-  WARRIORS,
-  GENERALS,
-  ARCHERS,
+  WARRIORS = "WARRIORS",
+  GENERALS = "GENERALS",
+  ARCHERS = "ARCHERS",
 }

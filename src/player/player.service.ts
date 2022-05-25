@@ -1,6 +1,7 @@
 import { CollectionReference } from "@google-cloud/firestore";
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { Response } from "express";
 import { CreatePlayerDto } from "./dto/create-player.dto";
 import { UpdatePlayerDto } from "./dto/update-player.dto";
 import { Player } from "./entities/player.entity";
@@ -35,6 +36,16 @@ export class PlayerService {
 
   async findOne(username: string) {
     return (await this.playerCollection.doc(username).get()).data();
+  }
+
+  async getResources(res: Response, username: string) {
+    const player = (await this.playerCollection.doc(username).get()).data();
+    return player != undefined ? player.resources : res.sendStatus(HttpStatus.NOT_FOUND);
+  }
+
+  async getTroops(res, username: string) {
+    const player = (await this.playerCollection.doc(username).get()).data();
+    return player != undefined ? player.troops : res.sendStatus(HttpStatus.NOT_FOUND);
   }
 
   async update(username: string, updatePlayerDto: UpdatePlayerDto) {
