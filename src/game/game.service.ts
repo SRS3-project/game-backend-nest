@@ -39,27 +39,30 @@ export class GameService {
     createAttackDto.army.forEach((troop) => {
       switch (troop.type) {
         case TroopType.WARRIORS: {
-          if (troop.amount < player.warriors)
+          let warriors = player.troops.find((el) => el.type == TroopType.WARRIORS).amount;
+          if (troop.amount < warriors)
             return res
               .status(HttpStatus.BAD_REQUEST)
               .send({ error: "The number of warriors exceed you capabilities." });
-          player.warriors = player.warriors - troop.amount;
+          player.troops.find((el) => el.type == TroopType.WARRIORS).amount = warriors - troop.amount;
           break;
         }
         case TroopType.GENERALS: {
-          if (troop.amount < player.generals)
+          let generals = player.troops.find((el) => el.type == TroopType.GENERALS).amount;
+          if (troop.amount < generals)
             return res
               .status(HttpStatus.BAD_REQUEST)
               .send({ error: "The number of generals exceed you capabilities." });
-          player.warriors = player.warriors - troop.amount;
+          player.troops.find((el) => el.type == TroopType.GENERALS).amount = generals - troop.amount;
           break;
         }
         case TroopType.ARCHERS: {
-          if (troop.amount < player.archers)
+          let archers = player.troops.find((el) => el.type == TroopType.ARCHERS).amount;
+          if (troop.amount < archers)
             return res
               .status(HttpStatus.BAD_REQUEST)
               .send({ error: "The number of archers exceed you capabilities." });
-          player.warriors = player.warriors - troop.amount;
+          player.troops.find((el) => el.type == TroopType.ARCHERS).amount = archers - troop.amount;
           break;
         }
       }

@@ -1,4 +1,6 @@
+import { Army } from "./army.entity";
 import { Attack } from "./attack.entity";
+import { Resource } from "./resources.entity";
 
 export class Player {
   static collectionName = "player";
@@ -6,13 +8,8 @@ export class Player {
   username: string;
   xp: number;
   level: number;
-  wood: number;
-  stone: number;
-  food: number;
-  gold: number;
-  warriors: number;
-  generals: number;
-  archers: number;
+  resources: Array<Resource>;
+  troops: Array<Army>;
   x: number;
   y: number;
   attack: Array<Attack>;
