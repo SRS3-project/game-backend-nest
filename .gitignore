@@ -30,3 +30,4 @@ chrome-user-data
 
 # firestore
 firestore*
+.development.env
