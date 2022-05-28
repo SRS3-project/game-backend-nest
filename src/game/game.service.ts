@@ -80,7 +80,7 @@ export class GameService {
   }
 
   async buildTroop(req, res, createArmyDto: CreateArmyDto) {
-    const playerRef = await this.playerCollection.doc("fogliale").get();
+    const playerRef = await this.playerCollection.doc(req.user.username).get();
     if (!playerRef.exists) {
       return res.status(HttpStatus.NOT_FOUND).send({ error: "Player not found" });
     }

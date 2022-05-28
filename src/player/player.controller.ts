@@ -10,6 +10,8 @@ import {
   ValidationPipe,
   UseGuards,
   Res,
+  Req,
+  HttpStatus,
 } from "@nestjs/common";
 import { PlayerService } from "./player.service";
 import { CreatePlayerDto } from "./dto/create-player.dto";
@@ -26,8 +28,10 @@ export class PlayerController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  create(@Body() createPlayerDto: CreatePlayerDto) {
-    return this.playerService.create(createPlayerDto);
+  create(@Req() req, @Res({ passthrough: true }) res, @Body() createPlayerDto: CreatePlayerDto) {
+    return req.user.username == createPlayerDto.username
+      ? this.playerService.create(createPlayerDto)
+      : res.sendStatus(HttpStatus.FORBIDDEN);
   }
 
   @Get()
@@ -44,26 +48,41 @@ export class PlayerController {
 
   @Get("/resources/:username")
   @UseGuards(JwtAuthGuard)
-  getResources(@Res() res: Response, @Param("username") username: string) {
+  getResources(@Res({ passthrough: true }) res: Response, @Param("username") username: string) {
     return this.playerService.getResources(res, username);
   }
 
   @Get("/troops/:username")
   @UseGuards(JwtAuthGuard)
-  getTroops(@Res() res: Response, @Param("username") username: string) {
+  getTroops(@Res({ passthrough: true }) res: Response, @Param("username") username: string) {
     return this.playerService.getTroops(res, username);
+  }
+
+  @Get("/techs/:username")
+  @UseGuards(JwtAuthGuard)
+  getTechs(@Res({ passthrough: true }) res: Response, @Param("username") username: string) {
+    return this.playerService.getTechs(res, username);
   }
 
   @Patch(":username")
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  update(@Param("username") username: string, @Body() updatePlayerDto: UpdatePlayerDto) {
-    return this.playerService.update(username, updatePlayerDto);
+  update(
+    @Req() req,
+    @Res({ passthrough: true }) res,
+    @Param("username") username: string,
+    @Body() updatePlayerDto: UpdatePlayerDto,
+  ) {
+    return req.user.username == username
+      ? this.playerService.update(username, updatePlayerDto)
+      : res.sendStatus(HttpStatus.FORBIDDEN);
   }
 
   @Delete(":username")
   @UseGuards(JwtAuthGuard)
-  remove(@Param("username") username: string) {
-    return this.playerService.remove(username);
+  remove(@Req() req, @Res({ passthrough: true }) res, @Param("username") username: string) {
+    return req.user.username == username
+      ? this.playerService.remove(username)
+      : res.sendStatus(HttpStatus.FORBIDDEN);
   }
 }

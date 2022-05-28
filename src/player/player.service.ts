@@ -50,6 +50,11 @@ export class PlayerService {
     return player != undefined ? player.troops : res.sendStatus(HttpStatus.NOT_FOUND);
   }
 
+  async getTechs(res, username: string) {
+    const player = (await this.playerCollection.doc(username).get()).data();
+    return player != undefined ? player.techs : res.sendStatus(HttpStatus.NOT_FOUND);
+  }
+
   async update(username: string, updatePlayerDto: UpdatePlayerDto) {
     return await this.playerCollection.doc(username).update(JSON.parse(JSON.stringify(updatePlayerDto)));
   }
