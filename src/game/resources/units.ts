@@ -236,12 +236,12 @@ export const units = {
         icon: "general",
         type:"military",
         stats: {
-          health: 1,
-          armor: 1,
-          attack: 1,
-          speed: 1,
-          backpack: 1,
-          hunger: 1
+          health: 75000,
+          armor: 500,
+          attack: 1000,
+          speed: 5000,
+          backpack: 500,
+          hunger: 700
         },
         cost: {
           minerals: 50000,
@@ -305,11 +305,11 @@ export const units = {
         icon: "general",
         type:"military",
         stats: {
-          health: 1,
-          armor: 1,
-          attack: 1,
-          speed: 1,
-          backpack: 1,
+          health: 900000,
+          armor: 500000,
+          attack: 200000,
+          speed: 100,
+          backpack: 1000000,
           hunger: 1
         },
         cost: {
