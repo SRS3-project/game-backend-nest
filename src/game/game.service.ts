@@ -6,7 +6,7 @@ import { PlayerService } from "src/player/player.service";
 import { CreateArmyDto } from "./dto/create-army.dto";
 import { CreateAttackDto } from "./dto/create-attack.dto";
 import { TroopType } from "./enum/troop-type.enum";
-import { troops } from "./resources/troops";
+import { units } from "./resources/units";
 import { ConfigService } from "@nestjs/config";
 import { SocketClientProxyService } from "src/socket/socket-client.proxy.service";
 
@@ -37,35 +37,12 @@ export class GameService {
 
     // Game Logic applied
     createAttackDto.army.forEach((troop) => {
-      switch (troop.type) {
-        case TroopType.WARRIORS: {
-          let warriors = player.troops.find((el) => el.type == TroopType.WARRIORS).amount;
-          if (troop.amount < warriors)
-            return res
-              .status(HttpStatus.BAD_REQUEST)
-              .send({ error: "The number of warriors exceed you capabilities." });
-          player.troops.find((el) => el.type == TroopType.WARRIORS).amount = warriors - troop.amount;
-          break;
-        }
-        case TroopType.GENERALS: {
-          let generals = player.troops.find((el) => el.type == TroopType.GENERALS).amount;
-          if (troop.amount < generals)
-            return res
-              .status(HttpStatus.BAD_REQUEST)
-              .send({ error: "The number of generals exceed you capabilities." });
-          player.troops.find((el) => el.type == TroopType.GENERALS).amount = generals - troop.amount;
-          break;
-        }
-        case TroopType.ARCHERS: {
-          let archers = player.troops.find((el) => el.type == TroopType.ARCHERS).amount;
-          if (troop.amount < archers)
-            return res
-              .status(HttpStatus.BAD_REQUEST)
-              .send({ error: "The number of archers exceed you capabilities." });
-          player.troops.find((el) => el.type == TroopType.ARCHERS).amount = archers - troop.amount;
-          break;
-        }
-      }
+      let warriors = player.troops.find((el) => el.type == troop.type).amount;
+      if (troop.amount < warriors)
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .send({ error: "The number of warriors exceed you capabilities." });
+      player.troops.find((el) => el.type == troop.type).amount = warriors - troop.amount;
     });
 
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
@@ -111,13 +88,13 @@ export class GameService {
     const player = playerRef.data();
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
 
-    Object.entries(troops[createArmyDto.type].cost).forEach(([resName, resValue]) => {
-      if (player[resName] < troops[createArmyDto.type].cost[resName] * createArmyDto.amount) {
+    Object.entries(units[createArmyDto.type].cost).forEach(([resName, resValue]) => {
+      if (player[resName] < units[createArmyDto.type].cost[resName] * createArmyDto.amount) {
         return res.status(HttpStatus.BAD_REQUEST).send({
           error: "Not enough " + resName + " to build " + createArmyDto.amount + " " + createArmyDto.type,
         });
       }
-      player[resName] = player[resName] - troops[createArmyDto.type].cost[resName] * createArmyDto.amount;
+      player[resName] = player[resName] - units[createArmyDto.type].cost[resName] * createArmyDto.amount;
     });
     player[createArmyDto.type] = player[createArmyDto.type] + createArmyDto.type;
 

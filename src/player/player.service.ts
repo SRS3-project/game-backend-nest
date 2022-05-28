@@ -26,11 +26,13 @@ export class PlayerService {
         .doc(createPlayerDto.username)
         .set(JSON.parse(JSON.stringify(createPlayerDto)));
       return createPlayerDto;
+    } else {
+      return player.data();
     }
   }
 
   async findAll() {
-    const snapshot = await this.playerCollection.get();
+    const snapshot = await this.playerCollection.orderBy("xp", "desc").get();
     return snapshot.docs.map((doc) => doc.data());
   }
 
