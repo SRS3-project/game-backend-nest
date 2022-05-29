@@ -1,6 +1,6 @@
 export enum ResourceType {
   WOOD = "WOOD",
-  STONE = "STONE",
+  MINERALS = "MINERALS",
   FOOD = "FOOD",
   GOLD = "GOLD",
 }
