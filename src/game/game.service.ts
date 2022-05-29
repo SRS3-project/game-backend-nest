@@ -88,31 +88,32 @@ export class GameService {
     const player = playerRef.data();
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
 
-    Object.entries(units[createArmyDto.type].cost).forEach(([resName, resValue]) => {
-      if (player[resName] < units[createArmyDto.type].cost[resName] * createArmyDto.amount) {
+    // Check resources
+    Object.entries(units[createArmyDto.type.toLocaleLowerCase()]["cost"]).forEach((resource, id) => {
+      let cost = resource.toString().split(",");
+      let playerResource = player.resources.find((pr) => cost[0].toUpperCase() == pr.type);
+      let totalCost = Number(cost[1]) * createArmyDto.amount;
+
+      if (playerResource.amount < totalCost) {
         return res.status(HttpStatus.BAD_REQUEST).send({
-          error: "Not enough " + resName + " to build " + createArmyDto.amount + " " + createArmyDto.type,
+          error: "Not enough " + cost[0] + " to build " + createArmyDto.amount + " " + createArmyDto.type,
         });
       }
-      player[resName] = player[resName] - units[createArmyDto.type].cost[resName] * createArmyDto.amount;
+      updatePlayer.resources.find((pr) => pr.type == cost[0].toUpperCase()).amount -= totalCost;
     });
-    player[createArmyDto.type] = player[createArmyDto.type] + createArmyDto.type;
-
+    updatePlayer.troops.find((pt) => pt.type == createArmyDto.type.toUpperCase()).amount +=
+      createArmyDto.amount;
     this.playerService.update(updatePlayer.username, updatePlayer);
 
     // socket emit
-    const payload = {
-      brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
-      type: "build",
-      username: req.username,
-      build: createArmyDto,
-    };
-    this.socketClientProxyService.emit("data", JSON.stringify(payload));
+    // const payload = {
+    //   brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
+    //   type: "build",
+    //   username: req.username,
+    //   build: createArmyDto,
+    // };
+    // this.socketClientProxyService.emit("data", JSON.stringify(payload));
 
-    return res.send({
-      timestmap: new Date().getTime(),
-      username: req.username,
-      build: createArmyDto,
-    });
+    return res.send(updatePlayer);
   }
 }
