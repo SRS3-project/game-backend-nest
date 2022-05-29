@@ -15,9 +15,8 @@ export class GameService {
   constructor(
     @Inject(Player.collectionName)
     private playerCollection: CollectionReference<Player>,
-    private readonly socketClientProxyService: SocketClientProxyService,
-    private readonly playerService: PlayerService,
-    private readonly configService: ConfigService,
+    // private readonly socketClientProxyService: SocketClientProxyService,
+    private readonly playerService: PlayerService, // private readonly configService: ConfigService,
   ) {}
 
   async createAttack(res, createAttackDto: CreateAttackDto) {
@@ -31,18 +30,18 @@ export class GameService {
     // Check if enemyPlayer exists in our firebase
     const enemyPlayer = await this.playerCollection.doc(createAttackDto.enemyUsername).get();
     if (!enemyPlayer.exists) {
-      return res.status(HttpStatus.NOT_FOUND).send();
+      return res.status(HttpStatus.NOT_FOUND).send("Enemy player not exists");
     }
     const enemy = enemyPlayer.data();
 
     // Game Logic applied
     createAttackDto.army.forEach((troop) => {
-      let warriors = player.troops.find((el) => el.type == troop.type).amount;
-      if (troop.amount < warriors)
+      let playerTroop = player.troops.find((el) => el.type == troop.type.toUpperCase()).amount;
+      if (playerTroop < troop.amount)
         return res
           .status(HttpStatus.BAD_REQUEST)
-          .send({ error: "The number of warriors exceed you capabilities." });
-      player.troops.find((el) => el.type == troop.type).amount = warriors - troop.amount;
+          .send({ error: "The number of " + troop.type + "exceed you capabilities." });
+      player.troops.find((el) => el.type == troop.type.toUpperCase()).amount = playerTroop - troop.amount;
     });
 
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
@@ -50,7 +49,7 @@ export class GameService {
     this.playerService.update(updatePlayer.username, updatePlayer);
 
     const attack = {
-      to: createAttackDto.enemyUsername,
+      from: createAttackDto.fromUsername,
       army: createAttackDto.army,
       timestampComplete:
         new Date().getTime() +
@@ -64,13 +63,13 @@ export class GameService {
     this.playerService.update(updateEnemy.username, updateEnemy);
 
     // socket emit
-    const payload = {
-      brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
-      type: "attack",
-      username: createAttackDto.fromUsername,
-      attack: attack,
-    };
-    this.socketClientProxyService.emit("data", JSON.stringify(payload));
+    // const payload = {
+    //   brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
+    //   type: "attack",
+    //   username: createAttackDto.fromUsername,
+    //   attack: attack,
+    // };
+    // this.socketClientProxyService.emit("data", JSON.stringify(payload));
 
     return res.send({
       timestmap: new Date().getTime(),
