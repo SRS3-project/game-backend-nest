@@ -21,7 +21,7 @@ export class CreatePlayerDto {
     ...[
       { type: ResourceType.FOOD, amount: 0 },
       { type: ResourceType.GOLD, amount: 0 },
-      { type: ResourceType.STONE, amount: 0 },
+      { type: ResourceType.MINERALS, amount: 0 },
       { type: ResourceType.WOOD, amount: 0 },
     ],
   );
