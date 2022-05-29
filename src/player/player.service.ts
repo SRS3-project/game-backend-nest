@@ -1,7 +1,8 @@
-import { CollectionReference } from "@google-cloud/firestore";
+import { CollectionReference, Timestamp } from "@google-cloud/firestore";
 import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
+import { productionQuantity } from "src/game/resources/resources-production";
 import { CreatePlayerDto } from "./dto/create-player.dto";
 import { UpdatePlayerDto } from "./dto/update-player.dto";
 import { Player } from "./entities/player.entity";
@@ -37,20 +38,24 @@ export class PlayerService {
   }
 
   async findOne(username: string) {
+    await this.generateResources(username);
     return (await this.playerCollection.doc(username).get()).data();
   }
 
   async getResources(res: Response, username: string) {
+    await this.generateResources(username);
     const player = (await this.playerCollection.doc(username).get()).data();
     return player != undefined ? player.resources : res.sendStatus(HttpStatus.NOT_FOUND);
   }
 
   async getTroops(res, username: string) {
+    await this.generateResources(username);
     const player = (await this.playerCollection.doc(username).get()).data();
     return player != undefined ? player.troops : res.sendStatus(HttpStatus.NOT_FOUND);
   }
 
   async getTechs(res, username: string) {
+    await this.generateResources(username);
     const player = (await this.playerCollection.doc(username).get()).data();
     return player != undefined ? player.techs : res.sendStatus(HttpStatus.NOT_FOUND);
   }
@@ -61,5 +66,30 @@ export class PlayerService {
 
   async remove(username: string) {
     return await this.playerCollection.doc(username).delete();
+  }
+
+  /**
+   *
+   * @param req Request containing username
+   *
+   * Minerals hrs production = 30 * level * 1.1 ^ (level)
+   * Wood hrs production = 20 * level * 1.1 ^ (level)
+   * Gold hrs production = 15 * level * 1.1 ^ (level)
+   * Food hrs production = 10 * level * 1.1 ^ (level)
+   */
+  private async generateResources(username: string) {
+    const player = (await this.playerCollection.doc(username).get()).data();
+    const constant = 1.1;
+    const now = new Date().getTime();
+    const hrs = Math.floor((now - player.updatedAt) / 1000 / 60 / 60);
+
+    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
+    productionQuantity.forEach((prod) => {
+      updatePlayer.resources.find((res) => res.type == prod.type).amount += Math.floor(
+        hrs * prod.qta * player.level * Math.pow(constant, player.level),
+      );
+    });
+    updatePlayer.updatedAt = now;
+    this.update(updatePlayer.username, updatePlayer);
   }
 }
