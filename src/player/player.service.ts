@@ -2,6 +2,7 @@ import { CollectionReference, Timestamp } from "@google-cloud/firestore";
 import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
+import { CreateTechDto } from "src/game/dto/create-tech.dto";
 import { productionQuantity } from "src/game/resources/resources-production";
 import { CreatePlayerDto } from "./dto/create-player.dto";
 import { UpdatePlayerDto } from "./dto/update-player.dto";
@@ -62,6 +63,17 @@ export class PlayerService {
 
   async update(username: string, updatePlayerDto: UpdatePlayerDto) {
     return await this.playerCollection.doc(username).update(JSON.parse(JSON.stringify(updatePlayerDto)));
+  }
+
+  async updateTechs(req, res, techDto: CreateTechDto) {
+    const player = await this.playerCollection.doc(req.user.username).get();
+    if (!player.exists) return res.status(HttpStatus.NOT_FOUND).send("User not found");
+
+    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player.data());
+    let techs = updatePlayer.techs;
+    techs.find((t) => t.type == techDto.type).level = techDto.level;
+
+    return await this.update(req.user.username, updatePlayer);
   }
 
   async remove(username: string) {
