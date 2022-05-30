@@ -19,6 +19,7 @@ import { UpdatePlayerDto } from "./dto/update-player.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { Response } from "express";
+import { CreateTechDto } from "src/game/dto/create-tech.dto";
 
 @ApiTags("player")
 @Controller("player")
@@ -64,7 +65,7 @@ export class PlayerController {
     return this.playerService.getTechs(res, username);
   }
 
-  @Patch(":username")
+  @Patch("/update")
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   update(
@@ -75,6 +76,15 @@ export class PlayerController {
   ) {
     return req.user.username == username
       ? this.playerService.update(username, updatePlayerDto)
+      : res.sendStatus(HttpStatus.FORBIDDEN);
+  }
+
+  @Patch("/techs")
+  @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  updateTechs(@Req() req, @Res({ passthrough: true }) res, @Body() techDto: CreateTechDto) {
+    return req.user.username == techDto.username
+      ? this.playerService.updateTechs(req, res, techDto)
       : res.sendStatus(HttpStatus.FORBIDDEN);
   }
 
