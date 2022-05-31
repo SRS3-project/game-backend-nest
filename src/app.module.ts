@@ -12,7 +12,7 @@ import { SocketClientModule } from "./socket/socket-client.module";
   imports: [
     AuthModule,
     ConfigModule.forRoot({
-      envFilePath: ".development.env",
+      envFilePath: ".env",
       isGlobal: true,
     }),
     FirestoreModule.forRoot({
