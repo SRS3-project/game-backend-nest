@@ -5,7 +5,8 @@ WORKDIR /usr/src/game-backend
 COPY . .
 
 #RUN apk add --update python3-dev build-base # for gyp
-RUN npm install
-ENTRYPOINT ["ls" "-l"]
+#RUN npm install
+ENTRYPOINT ["/bin/ping"]
+CMD ["localhost"]
 #ENTRYPOINT [ "npm", "run", "start:prod" ]
 
