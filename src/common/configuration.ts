@@ -1,6 +1,6 @@
 export const configuration = () => ({
   NODE_ENV: process.env.NODE_ENV,
-  PORT: process.env.PORT,
+  PORT: process.env.PORT ?? 8080,
   TOKEN: process.env.TOKEN,
   DB_PREFIX: process.env.DB_PREFIX,
   GCLOUD_PROJECT: process.env.GCLOUD_PROJECT,
