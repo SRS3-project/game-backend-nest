@@ -17,7 +17,7 @@ const envFilePath: string = getEnvPath(`${__dirname}/common/envs`);
   imports: [
     AuthModule,
     ConfigModule.forRoot({
-      envFilePath: `.env`,
+      envFilePath: `src/common/envs/.env`,
       isGlobal: true,
       load: [configuration],
       validationSchema: validationSchema,
