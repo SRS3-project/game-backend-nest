@@ -1,5 +1,5 @@
 FROM node:17-alpine AS builder
-WORKDIR /usr/src/game-backend-nest
+WORKDIR /usr/src/game-backend
 
 COPY . .
 
