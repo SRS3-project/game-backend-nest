@@ -95,6 +95,8 @@ export class PlayerService {
     const now = new Date().getTime();
     const hrs = Math.floor((now - player.updatedAt) / 1000 / 60 / 60);
 
+    if (hrs === 0) return;
+
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
     productionQuantity.forEach((prod) => {
       updatePlayer.resources.find((res) => res.type == prod.type).amount += Math.floor(
