@@ -15,7 +15,7 @@ const envFilePath: string = getEnvPath(`${__dirname}/common/envs`);
   imports: [
     AuthModule,
     ConfigModule.forRoot({
-      envFilePath,
+      envFilePath: [envFilePath],
       isGlobal: true,
     }),
     FirestoreModule.forRoot({
