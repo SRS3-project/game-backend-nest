@@ -94,14 +94,18 @@ export class PlayerService {
     const constant = 1.1;
     const now = new Date().getTime();
     const hrs = Math.floor((now - player.updatedAt) / 1000 / 60 / 60);
+    const maxResource = 10000 * player.level;
 
     if (hrs === 0) return;
 
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
     productionQuantity.forEach((prod) => {
-      updatePlayer.resources.find((res) => res.type == prod.type).amount += Math.floor(
-        hrs * prod.qta * player.level * Math.pow(constant, player.level),
-      );
+      let resource =
+        updatePlayer.resources.find((res) => res.type == prod.type).amount +
+        Math.floor(hrs * prod.qta * player.level * Math.pow(constant, player.level));
+
+      updatePlayer.resources.find((res) => res.type == prod.type).amount =
+        resource > maxResource ? maxResource : resource;
     });
     updatePlayer.updatedAt = now;
     this.update(updatePlayer.username, updatePlayer);

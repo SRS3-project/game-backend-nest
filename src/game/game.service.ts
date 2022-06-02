@@ -88,7 +88,7 @@ export class GameService {
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
 
     // Check resources
-    Object.entries(units[createArmyDto.type.toLocaleLowerCase()]["cost"]).forEach((resource, id) => {
+    Object.entries(units[createArmyDto.type.toLowerCase()]["cost"]).forEach((resource, id) => {
       let cost = resource.toString().split(",");
       let playerResource = player.resources.find((pr) => cost[0].toUpperCase() == pr.type);
       let totalCost = Number(cost[1]) * createArmyDto.amount;
