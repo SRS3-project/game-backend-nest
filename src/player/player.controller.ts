@@ -32,7 +32,7 @@ export class PlayerController {
   create(@Req() req, @Res({ passthrough: true }) res, @Body() createPlayerDto: CreatePlayerDto) {
     return req.user.username == createPlayerDto.username
       ? this.playerService.create(createPlayerDto)
-      : res.sendStatus(HttpStatus.FORBIDDEN);
+      : { error: HttpStatus.FORBIDDEN };
   }
 
   @Get()
@@ -76,7 +76,7 @@ export class PlayerController {
   ) {
     return req.user.username == username
       ? this.playerService.update(username, updatePlayerDto)
-      : res.sendStatus(HttpStatus.FORBIDDEN);
+      : { error: HttpStatus.FORBIDDEN };
   }
 
   @Patch("/techs")
@@ -85,7 +85,7 @@ export class PlayerController {
   updateTechs(@Req() req, @Res({ passthrough: true }) res, @Body() techDto: CreateTechDto) {
     return req.user.username == techDto.username
       ? this.playerService.updateTechs(req, res, techDto)
-      : res.sendStatus(HttpStatus.FORBIDDEN);
+      : { error: HttpStatus.FORBIDDEN };
   }
 
   @Delete(":username")
@@ -93,6 +93,6 @@ export class PlayerController {
   remove(@Req() req, @Res({ passthrough: true }) res, @Param("username") username: string) {
     return req.user.username == username
       ? this.playerService.remove(username)
-      : res.sendStatus(HttpStatus.FORBIDDEN);
+      : { error: HttpStatus.FORBIDDEN };
   }
 }
