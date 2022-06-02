@@ -73,7 +73,8 @@ export class PlayerService {
     let techs = updatePlayer.techs;
     techs.find((t) => t.type == techDto.type).level = techDto.level;
 
-    return await this.update(req.user.username, updatePlayer);
+    await this.update(req.user.username, updatePlayer);
+    return (await this.playerCollection.doc(req.user.username).get()).data();
   }
 
   async remove(username: string) {
