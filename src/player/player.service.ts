@@ -1,4 +1,4 @@
-import { CollectionReference, Timestamp } from "@google-cloud/firestore";
+import { CollectionReference } from "@google-cloud/firestore";
 import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
@@ -83,7 +83,7 @@ export class PlayerService {
 
   /**
    *
-   * @param req Request containing username
+   * @param username username to update
    *
    * Minerals hrs production = 30 * level * 1.1 ^ (level)
    * Wood hrs production = 20 * level * 1.1 ^ (level)
