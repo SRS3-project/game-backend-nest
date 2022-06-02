@@ -80,4 +80,6 @@ export class CreatePlayerDto {
   createdAt: number;
   @IsOptional()
   updatedAt: number;
+  @IsOptional()
+  deleted: boolean = false;
 }

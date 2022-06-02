@@ -17,4 +17,5 @@ export class Player {
   attack: Array<Attack>;
   createdAt: number;
   updatedAt: number;
+  deleted: boolean;
 }
