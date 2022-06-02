@@ -1,4 +1,14 @@
-import { Controller, Post, Body, Response, UseGuards, Req, Res, HttpStatus } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Res,
+  HttpStatus,
+  ValidationPipe,
+  UsePipes,
+} from "@nestjs/common";
 import { GameService } from "./game.service";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateAttackDto } from "./dto/create-attack.dto";
@@ -12,7 +22,8 @@ export class GameController {
 
   @Post("/attack")
   @UseGuards(JwtAuthGuard)
-  doAttack(@Req() req, @Res() res, @Body() createAttackDto: CreateAttackDto) {
+  @UsePipes(new ValidationPipe({ transform: true }))
+  doAttack(@Req() req, @Res({ passthrough: true }) res, @Body() createAttackDto: CreateAttackDto) {
     return req.user.username == createAttackDto.fromUsername
       ? this.gameService.createAttack(res, createAttackDto)
       : res.sendStatus(HttpStatus.FORBIDDEN);
@@ -20,7 +31,8 @@ export class GameController {
 
   @Post("/build")
   @UseGuards(JwtAuthGuard)
-  buildTroop(@Req() req, @Res() res, @Body() createArmyDto: CreateArmyDto) {
+  @UsePipes(new ValidationPipe({ transform: true }))
+  buildTroop(@Req() req, @Res({ passthrough: true }) res, @Body() createArmyDto: CreateArmyDto) {
     return this.gameService.buildTroop(req, res, createArmyDto);
   }
 }

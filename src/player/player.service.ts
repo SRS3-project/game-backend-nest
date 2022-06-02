@@ -89,7 +89,7 @@ export class PlayerService {
    * Gold hrs production = 15 * level * 1.1 ^ (level)
    * Food hrs production = 10 * level * 1.1 ^ (level)
    */
-  private async generateResources(username: string) {
+  async generateResources(username: string) {
     const player = (await this.playerCollection.doc(username).get()).data();
     const constant = 1.1;
     const now = new Date().getTime();
@@ -108,6 +108,6 @@ export class PlayerService {
         resource > maxResource ? maxResource : resource;
     });
     updatePlayer.updatedAt = now;
-    this.update(updatePlayer.username, updatePlayer);
+    await this.update(updatePlayer.username, updatePlayer);
   }
 }

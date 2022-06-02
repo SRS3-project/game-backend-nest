@@ -5,10 +5,7 @@ import { Player } from "src/player/entities/player.entity";
 import { PlayerService } from "src/player/player.service";
 import { CreateArmyDto } from "./dto/create-army.dto";
 import { CreateAttackDto } from "./dto/create-attack.dto";
-import { TroopType } from "./enum/troop-type.enum";
 import { units } from "./resources/units";
-import { ConfigService } from "@nestjs/config";
-import { SocketClientProxyService } from "src/socket/socket-client.proxy.service";
 
 @Injectable()
 export class GameService {
@@ -26,7 +23,7 @@ export class GameService {
       return res.status(HttpStatus.NOT_FOUND).send();
     }
     const player = fromPlayer.data();
-
+    await this.playerService.generateResources(createAttackDto.enemyUsername);
     // Check if enemyPlayer exists in our firebase
     const enemyPlayer = await this.playerCollection.doc(createAttackDto.enemyUsername).get();
     if (!enemyPlayer.exists) {
@@ -40,15 +37,35 @@ export class GameService {
       if (playerTroop < troop.amount)
         return res
           .status(HttpStatus.BAD_REQUEST)
-          .send({ error: "The number of " + troop.type + "exceed you capabilities." });
+          .send({ error: "The number of " + troop.type + " exceed you capabilities." });
       player.troops.find((el) => el.type == troop.type.toUpperCase()).amount = playerTroop - troop.amount;
     });
 
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
+    updatePlayer.xp += 50;
 
+    const maxResource = 10000 * player.level;
+    enemy.resources.forEach((res) => {
+      let newAmount = (updatePlayer.resources.find((r) => r.type === res.type).amount += res.amount);
+      updatePlayer.resources.find((r) => r.type === res.type).amount =
+        newAmount > maxResource ? maxResource : newAmount;
+      res.amount = 0;
+    });
+
+    const attackTo = {
+      to: createAttackDto.enemyUsername,
+      from: createAttackDto.fromUsername,
+      army: createAttackDto.army,
+      timestampComplete:
+        new Date().getTime() +
+        Math.floor(Math.pow(Math.abs(player.x + enemy.x) - Math.abs(player.y + enemy.y), 2)),
+    };
+    updatePlayer.attack.push(attackTo);
+    updatePlayer.level = Math.floor(updatePlayer.xp / 100);
     this.playerService.update(updatePlayer.username, updatePlayer);
 
-    const attack = {
+    const attackFrom = {
+      to: createAttackDto.enemyUsername,
       from: createAttackDto.fromUsername,
       army: createAttackDto.army,
       timestampComplete:
@@ -56,13 +73,12 @@ export class GameService {
         Math.floor(Math.pow(Math.abs(player.x + enemy.x) - Math.abs(player.y + enemy.y), 2)),
     };
 
-    // TODO: Update enemy player
     let updateEnemy: UpdatePlayerDto = new UpdatePlayerDto(enemy);
-    enemy.attack.push(attack);
+    enemy.attack.push(attackFrom);
 
     this.playerService.update(updateEnemy.username, updateEnemy);
 
-    // socket emit
+    // socket emit to RTM
     // const payload = {
     //   brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
     //   type: "attack",
@@ -71,11 +87,7 @@ export class GameService {
     // };
     // this.socketClientProxyService.emit("data", JSON.stringify(payload));
 
-    return res.send({
-      timestmap: new Date().getTime(),
-      username: createAttackDto.fromUsername,
-      attack: attack,
-    });
+    return updatePlayer;
   }
 
   async buildTroop(req, res, createArmyDto: CreateArmyDto) {
@@ -87,24 +99,31 @@ export class GameService {
     const player = playerRef.data();
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
 
+    let error = false;
     // Check resources
     Object.entries(units[createArmyDto.type.toLowerCase()]["cost"]).forEach((resource, id) => {
       let cost = resource.toString().split(",");
       let playerResource = player.resources.find((pr) => cost[0].toUpperCase() == pr.type);
       let totalCost = Number(cost[1]) * createArmyDto.amount;
-
-      if (playerResource.amount < totalCost) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
-          error: "Not enough " + cost[0] + " to build " + createArmyDto.amount + " " + createArmyDto.type,
-        });
-      }
+      if (playerResource.amount < totalCost) error = true;
       updatePlayer.resources.find((pr) => pr.type == cost[0].toUpperCase()).amount -= totalCost;
     });
+
+    if (error)
+      return {
+        status: HttpStatus.BAD_REQUEST,
+        error: "Not enough resources to build " + createArmyDto.amount + " " + createArmyDto.type,
+      };
+
+    // Level update
+    updatePlayer.xp += 10 * createArmyDto.amount;
+    updatePlayer.level = Math.floor(updatePlayer.xp / 100);
+
     updatePlayer.troops.find((pt) => pt.type == createArmyDto.type.toUpperCase()).amount +=
       createArmyDto.amount;
     this.playerService.update(updatePlayer.username, updatePlayer);
 
-    // socket emit
+    // socket emit to RTM
     // const payload = {
     //   brokerAuthKey: this.configService.get("BROKER_AUTH_KEY"),
     //   type: "build",
@@ -113,6 +132,6 @@ export class GameService {
     // };
     // this.socketClientProxyService.emit("data", JSON.stringify(payload));
 
-    return res.send(updatePlayer);
+    return (await this.playerCollection.doc(req.user.username).get()).data();
   }
 }
