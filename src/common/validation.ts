@@ -13,4 +13,7 @@ export const validationSchema = Joi.object({
   JWT_SECRET: Joi.string().required(),
   MAP_WIDTH: Joi.number().required(),
   MAP_HEIGHT: Joi.number().required(),
+  CLIENT_EMAIL: Joi.string().required(),
+  PRIVATE_KEY: Joi.string().required(),
+  PROJECT_ID: Joi.string().required(),
 });

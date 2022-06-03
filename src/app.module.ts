@@ -25,7 +25,11 @@ const envFilePath: string = getEnvPath(`${__dirname}/common/envs`);
     FirestoreModule.forRoot({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        keyFilename: configService.get<string>("GOOGLE_APPLICATION_CREDENTIALS"),
+        credentials: {
+          client_email: configService.get<string>("CLIENT_EMAIL"),
+          private_key: configService.get<string>("PRIVATE_KEY").replace(/\\n/g, "\n"),
+        },
+        projectId: configService.get<string>("PROJECT_ID"),
       }),
       inject: [ConfigService],
     }),
