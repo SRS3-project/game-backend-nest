@@ -29,10 +29,10 @@ export class PlayerController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  create(@Req() req, @Res({ passthrough: true }) res, @Body() createPlayerDto: CreatePlayerDto) {
+  create(@Req() req, @Body() createPlayerDto: CreatePlayerDto) {
     return req.user.username == createPlayerDto.username
       ? this.playerService.create(createPlayerDto)
-      : { error: HttpStatus.FORBIDDEN };
+      : { status: HttpStatus.FORBIDDEN };
   }
 
   @Get()
@@ -49,50 +49,45 @@ export class PlayerController {
 
   @Get("/resources/:username")
   @UseGuards(JwtAuthGuard)
-  getResources(@Res({ passthrough: true }) res: Response, @Param("username") username: string) {
-    return this.playerService.getResources(res, username);
+  getResources(@Param("username") username: string) {
+    return this.playerService.getResources(username);
   }
 
   @Get("/troops/:username")
   @UseGuards(JwtAuthGuard)
-  getTroops(@Res({ passthrough: true }) res: Response, @Param("username") username: string) {
-    return this.playerService.getTroops(res, username);
+  getTroops(@Param("username") username: string) {
+    return this.playerService.getTroops(username);
   }
 
   @Get("/techs/:username")
   @UseGuards(JwtAuthGuard)
-  getTechs(@Res({ passthrough: true }) res: Response, @Param("username") username: string) {
-    return this.playerService.getTechs(res, username);
+  getTechs(@Param("username") username: string) {
+    return this.playerService.getTechs(username);
   }
 
   @Patch("/update")
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  update(
-    @Req() req,
-    @Res({ passthrough: true }) res,
-    @Param("username") username: string,
-    @Body() updatePlayerDto: UpdatePlayerDto,
-  ) {
+  update(@Req() req, @Param("username") username: string, @Body() updatePlayerDto: UpdatePlayerDto) {
     return req.user.username == username
       ? this.playerService.update(username, updatePlayerDto)
-      : { error: HttpStatus.FORBIDDEN };
+      : { status: HttpStatus.FORBIDDEN };
   }
 
   @Patch("/techs")
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  updateTechs(@Req() req, @Res({ passthrough: true }) res, @Body() techDto: CreateTechDto) {
+  updateTechs(@Req() req, @Body() techDto: CreateTechDto) {
     return req.user.username == techDto.username
-      ? this.playerService.updateTechs(req, res, techDto)
-      : { error: HttpStatus.FORBIDDEN };
+      ? this.playerService.updateTechs(req, techDto)
+      : { status: HttpStatus.FORBIDDEN };
   }
 
   @Delete(":username")
   @UseGuards(JwtAuthGuard)
-  remove(@Req() req, @Res({ passthrough: true }) res, @Param("username") username: string) {
+  remove(@Req() req, @Param("username") username: string) {
     return req.user.username == username
-      ? this.playerService.remove(username)
-      : { error: HttpStatus.FORBIDDEN };
+      ? this.playerService.safeRemove(username)
+      : { status: HttpStatus.FORBIDDEN };
   }
 }

@@ -29,52 +29,87 @@ export class PlayerService {
         .set(JSON.parse(JSON.stringify(createPlayerDto)));
       return createPlayerDto;
     } else {
-      return player.data();
+      const playerData = player.data();
+      if (playerData.deleted) return { status: HttpStatus.FORBIDDEN };
+      return playerData;
     }
   }
 
   async findAll() {
     const snapshot = await this.playerCollection.orderBy("xp", "desc").get();
-    return snapshot.docs.map((doc) => doc.data());
+    return snapshot.docs.map((doc) => doc.data()).filter((val) => val.deleted != true);
   }
 
   async findOne(username: string) {
+    const player = await this.playerCollection.doc(username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
+
+    const playerData = player.data();
     await this.generateResources(username);
-    return (await this.playerCollection.doc(username).get()).data();
+    return playerData.deleted ? { status: HttpStatus.FORBIDDEN } : playerData;
   }
 
-  async getResources(res: Response, username: string) {
+  async getResources(username: string) {
+    const player = await this.playerCollection.doc(username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
+
+    const playerData = player.data();
     await this.generateResources(username);
-    const player = (await this.playerCollection.doc(username).get()).data();
-    return player != undefined ? player.resources : res.sendStatus(HttpStatus.NOT_FOUND);
+    return playerData.deleted ? { status: HttpStatus.FORBIDDEN } : playerData.resources;
   }
 
-  async getTroops(res, username: string) {
+  async getTroops(username: string) {
+    const player = await this.playerCollection.doc(username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
+
+    const playerData = player.data();
     await this.generateResources(username);
-    const player = (await this.playerCollection.doc(username).get()).data();
-    return player != undefined ? player.troops : res.sendStatus(HttpStatus.NOT_FOUND);
+    return playerData.deleted ? { status: HttpStatus.FORBIDDEN } : playerData.troops;
   }
 
-  async getTechs(res, username: string) {
+  async getTechs(username: string) {
+    const player = await this.playerCollection.doc(username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
+
+    const playerData = player.data();
     await this.generateResources(username);
-    const player = (await this.playerCollection.doc(username).get()).data();
-    return player != undefined ? player.techs : res.sendStatus(HttpStatus.NOT_FOUND);
+    return playerData.deleted ? { status: HttpStatus.FORBIDDEN } : playerData.techs;
   }
 
   async update(username: string, updatePlayerDto: UpdatePlayerDto) {
-    return await this.playerCollection.doc(username).update(JSON.parse(JSON.stringify(updatePlayerDto)));
+    const player = await this.playerCollection.doc(username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
+
+    const playerData = player.data();
+
+    return playerData.deleted
+      ? { status: HttpStatus.FORBIDDEN }
+      : await this.playerCollection.doc(username).update(JSON.parse(JSON.stringify(updatePlayerDto)));
   }
 
-  async updateTechs(req, res, techDto: CreateTechDto) {
+  async updateTechs(req, techDto: CreateTechDto) {
     const player = await this.playerCollection.doc(req.user.username).get();
-    if (!player.exists) return res.status(HttpStatus.NOT_FOUND).send("User not found");
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
 
-    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player.data());
+    const playerData = player.data();
+    if (playerData.deleted) return { status: HttpStatus.FORBIDDEN };
+
+    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(playerData);
     let techs = updatePlayer.techs;
     techs.find((t) => t.type == techDto.type).level = techDto.level;
 
     await this.update(req.user.username, updatePlayer);
     return (await this.playerCollection.doc(req.user.username).get()).data();
+  }
+
+  async safeRemove(username: string) {
+    const player = await this.playerCollection.doc(username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
+
+    const playerData = player.data();
+    let updatePlayer = new UpdatePlayerDto(playerData);
+    updatePlayer.deleted = true;
+    return await this.update(username, updatePlayer);
   }
 
   async remove(username: string) {
@@ -91,19 +126,24 @@ export class PlayerService {
    * Food hrs production = 10 * level * 1.1 ^ (level)
    */
   async generateResources(username: string) {
-    const player = (await this.playerCollection.doc(username).get()).data();
+    const player = await this.playerCollection.doc(username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
+
+    const playerData = player.data();
+    if (playerData.deleted) return { status: HttpStatus.FORBIDDEN };
+
     const constant = 1.1;
     const now = new Date().getTime();
-    const hrs = Math.floor((now - player.updatedAt) / 1000 / 60 / 60);
-    const maxResource = 10000 * player.level;
+    const hrs = Math.floor((now - playerData.updatedAt) / 1000 / 60 / 60);
+    const maxResource = 10000 * playerData.level;
 
     if (hrs === 0) return;
 
-    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
+    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(playerData);
     productionQuantity.forEach((prod) => {
       let resource =
         updatePlayer.resources.find((res) => res.type == prod.type).amount +
-        Math.floor(hrs * prod.qta * player.level * Math.pow(constant, player.level));
+        Math.floor(hrs * prod.qta * playerData.level * Math.pow(constant, playerData.level));
 
       updatePlayer.resources.find((res) => res.type == prod.type).amount =
         resource > maxResource ? maxResource : resource;

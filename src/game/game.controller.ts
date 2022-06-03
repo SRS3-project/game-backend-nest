@@ -23,16 +23,16 @@ export class GameController {
   @Post("/attack")
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  doAttack(@Req() req, @Res({ passthrough: true }) res, @Body() createAttackDto: CreateAttackDto) {
+  doAttack(@Req() req, @Body() createAttackDto: CreateAttackDto) {
     return req.user.username == createAttackDto.fromUsername
-      ? this.gameService.createAttack(res, createAttackDto)
-      : res.sendStatus(HttpStatus.FORBIDDEN);
+      ? this.gameService.createAttack(createAttackDto)
+      : { status: HttpStatus.FORBIDDEN };
   }
 
   @Post("/build")
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  buildTroop(@Req() req, @Res({ passthrough: true }) res, @Body() createArmyDto: CreateArmyDto) {
-    return this.gameService.buildTroop(req, res, createArmyDto);
+  buildTroop(@Req() req, @Body() createArmyDto: CreateArmyDto) {
+    return this.gameService.buildTroop(req, createArmyDto);
   }
 }

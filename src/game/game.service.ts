@@ -13,31 +13,33 @@ export class GameService {
     @Inject(Player.collectionName)
     private playerCollection: CollectionReference<Player>,
     // private readonly socketClientProxyService: SocketClientProxyService,
-    private readonly playerService: PlayerService, // private readonly configService: ConfigService,
+    private readonly playerService: PlayerService,
   ) {}
 
-  async createAttack(res, createAttackDto: CreateAttackDto) {
+  async createAttack(createAttackDto: CreateAttackDto) {
     // Check if fromPlayer exists in our firebase
     const fromPlayer = await this.playerCollection.doc(createAttackDto.fromUsername).get();
-    if (!fromPlayer.exists) {
-      return res.status(HttpStatus.NOT_FOUND).send();
-    }
+    if (!fromPlayer.exists) return { status: HttpStatus.NOT_FOUND };
+
     const player = fromPlayer.data();
+    if (player.deleted) return { status: HttpStatus.FORBIDDEN };
+
+    // Check if enemyPlayer exists in our firebase, first update resources
     await this.playerService.generateResources(createAttackDto.enemyUsername);
-    // Check if enemyPlayer exists in our firebase
     const enemyPlayer = await this.playerCollection.doc(createAttackDto.enemyUsername).get();
-    if (!enemyPlayer.exists) {
-      return res.status(HttpStatus.NOT_FOUND).send("Enemy player not exists");
-    }
+    if (!enemyPlayer.exists) return { status: HttpStatus.NOT_FOUND };
+
     const enemy = enemyPlayer.data();
+    if (enemy.deleted) return { status: HttpStatus.FORBIDDEN };
 
     // Game Logic applied
     createAttackDto.army.forEach((troop) => {
       let playerTroop = player.troops.find((el) => el.type == troop.type.toUpperCase()).amount;
       if (playerTroop < troop.amount)
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .send({ error: "The number of " + troop.type + " exceed you capabilities." });
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          error: "The number of " + troop.type + " exceed you capabilities.",
+        };
       player.troops.find((el) => el.type == troop.type.toUpperCase()).amount = playerTroop - troop.amount;
     });
 
@@ -90,20 +92,20 @@ export class GameService {
     return updatePlayer;
   }
 
-  async buildTroop(req, res, createArmyDto: CreateArmyDto) {
-    const playerRef = await this.playerCollection.doc(req.user.username).get();
-    if (!playerRef.exists) {
-      return res.status(HttpStatus.NOT_FOUND).send({ error: "Player not found" });
-    }
+  async buildTroop(req, createArmyDto: CreateArmyDto) {
+    const player = await this.playerCollection.doc(req.user.username).get();
+    if (!player.exists) return { status: HttpStatus.NOT_FOUND };
 
-    const player = playerRef.data();
-    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
+    const playerData = player.data();
+    if (playerData.deleted) return { status: HttpStatus.FORBIDDEN };
+
+    let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(playerData);
 
     let error = false;
     // Check resources
     Object.entries(units[createArmyDto.type.toLowerCase()]["cost"]).forEach((resource, id) => {
       let cost = resource.toString().split(",");
-      let playerResource = player.resources.find((pr) => cost[0].toUpperCase() == pr.type);
+      let playerResource = playerData.resources.find((pr) => cost[0].toUpperCase() == pr.type);
       let totalCost = Number(cost[1]) * createArmyDto.amount;
       if (playerResource.amount < totalCost) error = true;
       updatePlayer.resources.find((pr) => pr.type == cost[0].toUpperCase()).amount -= totalCost;
