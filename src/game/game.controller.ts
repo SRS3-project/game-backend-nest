@@ -24,6 +24,8 @@ export class GameController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   doAttack(@Req() req, @Body() createAttackDto: CreateAttackDto) {
+    if (createAttackDto.fromUsername === createAttackDto.enemyUsername)
+      return { status: HttpStatus.BAD_REQUEST };
     return req.user.username == createAttackDto.fromUsername
       ? this.gameService.createAttack(createAttackDto)
       : { status: HttpStatus.FORBIDDEN };
