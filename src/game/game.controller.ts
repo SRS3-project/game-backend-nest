@@ -33,6 +33,6 @@ export class GameController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   buildTroop(@Req() req, @Body() createArmyDto: CreateArmyDto) {
-    return this.gameService.buildTroop(req, createArmyDto);
+    return this.gameService.buildTroop(req.user.username, createArmyDto);
   }
 }

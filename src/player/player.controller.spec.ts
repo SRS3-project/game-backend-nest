@@ -3,9 +3,7 @@ import { HttpStatus, INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PlayerController } from "./player.controller";
 import { PlayerService } from "./player.service";
-import { JwtModule, JwtService } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
 import { JwtStrategy } from "src/auth/strategies/jwt.strategy";
 import { AppModule } from "src/app.module";
 

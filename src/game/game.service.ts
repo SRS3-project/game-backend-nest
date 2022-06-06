@@ -34,20 +34,20 @@ export class GameService {
 
     // Game Logic applied
     createAttackDto.army.forEach((troop) => {
-      let playerTroop = player.troops.find((el) => el.type == troop.type.toUpperCase()).amount;
+      let playerTroop = player.troops?.find((el) => el.type == troop.type.toUpperCase()).amount;
       if (playerTroop < troop.amount)
         return {
           status: HttpStatus.BAD_REQUEST,
           error: "The number of " + troop.type + " exceed you capabilities.",
         };
-      player.troops.find((el) => el.type == troop.type.toUpperCase()).amount = playerTroop - troop.amount;
+      //player.troops.find((el) => el.type == troop.type.toUpperCase()).amount = playerTroop - troop.amount;
     });
 
     let updatePlayer: UpdatePlayerDto = new UpdatePlayerDto(player);
     updatePlayer.xp += 50;
 
     const maxResource = 10000 * player.level;
-    enemy.resources.forEach((res) => {
+    enemy.resources?.forEach((res) => {
       let newAmount = (updatePlayer.resources.find((r) => r.type === res.type).amount += res.amount);
       updatePlayer.resources.find((r) => r.type === res.type).amount =
         newAmount > maxResource ? maxResource : newAmount;
@@ -76,7 +76,7 @@ export class GameService {
     };
 
     let updateEnemy: UpdatePlayerDto = new UpdatePlayerDto(enemy);
-    enemy.attack.push(attackFrom);
+    enemy.attack?.push(attackFrom);
 
     this.playerService.update(updateEnemy.username, updateEnemy);
 
@@ -92,8 +92,8 @@ export class GameService {
     return updatePlayer;
   }
 
-  async buildTroop(req, createArmyDto: CreateArmyDto) {
-    const player = await this.playerCollection.doc(req.user.username).get();
+  async buildTroop(username, createArmyDto: CreateArmyDto) {
+    const player = await this.playerCollection.doc(username).get();
     if (!player.exists) return { status: HttpStatus.NOT_FOUND };
 
     const playerData = player.data();
@@ -105,9 +105,9 @@ export class GameService {
     // Check resources
     Object.entries(units[createArmyDto.type.toLowerCase()]["cost"]).forEach((resource, id) => {
       let cost = resource.toString().split(",");
-      let playerResource = playerData.resources.find((pr) => cost[0].toUpperCase() == pr.type);
+      let playerResource = playerData.resources?.find((pr) => cost[0].toUpperCase() == pr.type);
       let totalCost = Number(cost[1]) * createArmyDto.amount;
-      if (playerResource.amount < totalCost) error = true;
+      if (playerResource?.amount < totalCost) error = true;
       updatePlayer.resources.find((pr) => pr.type == cost[0].toUpperCase()).amount -= totalCost;
     });
 
@@ -134,6 +134,6 @@ export class GameService {
     // };
     // this.socketClientProxyService.emit("data", JSON.stringify(payload));
 
-    return (await this.playerCollection.doc(req.user.username).get()).data();
+    return (await this.playerCollection.doc(username).get()).data();
   }
 }
