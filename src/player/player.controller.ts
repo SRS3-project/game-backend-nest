@@ -68,9 +68,9 @@ export class PlayerController {
   @Patch("/update")
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  update(@Req() req, @Param("username") username: string, @Body() updatePlayerDto: UpdatePlayerDto) {
-    return req.user.username == username
-      ? this.playerService.update(username, updatePlayerDto)
+  update(@Req() req, @Body() updatePlayerDto: UpdatePlayerDto) {
+    return req.user.username === updatePlayerDto.username
+      ? this.playerService.update(updatePlayerDto.username, updatePlayerDto)
       : { status: HttpStatus.FORBIDDEN };
   }
 
@@ -78,7 +78,7 @@ export class PlayerController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   updateTechs(@Req() req, @Body() techDto: CreateTechDto) {
-    return req.user.username == techDto.username
+    return req.user.username === techDto.username
       ? this.playerService.updateTechs(req, techDto)
       : { status: HttpStatus.FORBIDDEN };
   }
